@@ -1,0 +1,8 @@
+download esp-open-rtos and install all necessary tools
+
+command_to_flash
+-----------------
+export PATH=~/esp-open-sdk/xtensa-lx106-elf/bin:$PATH
+cd ~/esp-open-rtos/DripIrrigationControl
+make
+make flash

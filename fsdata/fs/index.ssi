@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<link rel="stylesheet" type="text/css" href="css/siimple.min.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="shortcut icon" href="img/favicon.png">
+                <link rel="background" href="img/border.jpg">
+		<title> AI-Gardening system</title>
+	</head>
+
+ <body background="border.jpg">
+<table>
+ <ul  class="navbar"><li><a class="active" href="index.ssi">INTELLIGENT FARM </a></li></ul>
+    <tr> <td>
+	 <div style="float:right; width:2%">  </div>
+     <div style="border-left #9b59b6 solid; position:absolute; left:220px; height:750px;" /> </div>
+    </td></tr>
+</table>
+
+
+
+  
+ <div style="float:right; width:90%">
+ <div class="grid main">
+<!-- <h3>INTELLIGENT FARM </h3> -->
+ <div class="portrait"> <img src="img/ai.jpg"></div>
+ <table border="1"  class="table table-striped">
+	<div id="status_box" class="alert alert-info">Loading..</div>
+	<!--<p>This system uses WebSockets for real-time updates.</p>  -->
+	 <div class="cover" align="center">
+     <p align="center" ><b>LED Control</b></p>        
+
+	
+
+				<div class="onoffswitch">
+					<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="led-switch" onclick="gpio()">
+					<label class="onoffswitch-label" for="led-switch">
+						<span class="onoffswitch-inner"></span>
+						<span class="onoffswitch-switch"></span>
+					</label>
+				</div>
+   </div>
+
+	<h1>Status</h1>
+
+                                  
+                
+ <table border="1"  class="table table-striped">
+ <tr> <td bgcolor="#E6E6FA" align="center" width="100" colspan="2"> <b> Drip Irrigation Control System </b></td>	</tr>
+ <tr> <td bgcolor="#E6E6FA" align="center" width="100" colspan="2"> <b> Main Data </b></td>	</tr>
+ <tr><td><b>Time:</b></td><td id="presentTime"></td>  </tr>
+ <tr><td width="20" ><b>Uptime:</b></td><td width="80" id="uptime"></td></tr>
+ <tr><td width="20" ><b>Free heap:</b></td>	<td width="80" id="heap"></td></tr>
+ <tr><td width="20" ><b>Valve State:</b></td><td width="80" id="led"></td>	</tr>
+ <tr><td width="20" ><b>Valve Last Status  <br> Time:</b></td><td width="80" id="valveState"></td></tr>
+            
+
+ <tr><td bgcolor="#E6E6FA" align="center" width="100" colspan="2"> <b> RTC DATA </b></td></tr>
+ <tr><td width="20" ><b> DATE(rtc)  :</b></td><td width="80" id="datertc"></td> </tr>
+ <tr><td width="20" ><b> TEPERATURE(rtc)  :</b></td><td width="80" id="temprtc"></td> </tr>
+ <tr><td width="20" ><b> TIME(rtc)  :</b></td><td width="80" id="timertc"></td></tr>  
+ <tr><td width="20" ><b> WaitPeriod<br> Next opening :</b></td><td width="80" id="period"></td></tr> 
+ <tr> <td width="20" ><b>Last <br> Flashed Date:</b></td><td width="80" > <b> 21th Sept 2022 </b></td></tr>
+
+ </table>
+
+	<h1>How it works</h1>
+	<p>The objective of the project is use Artificial Intelligence in Drip irrigation control system . A soil moisture sensor to be 
+	developed using image Pattern recognition for the automated recognition of patterns and regularities  soil and judge the moisture 
+	instead of normal sensor. Drip irrigation timer to be controlled using esp now protocol.       </p>
+	<p>This demo uses 2 WebScokets. Status parameters are streamed by the server in JSON format every 2 seconds.
+        <code>websocket_task</code> is created each time a specific URI is requested.</p>
+	<p>ADC values are being continuously polled by the client (i.e. your browser).
+        	Each time a WebSocket frame is received on the server side, <code>websocket_cb</code> function is being called.</p>
+	<p><u><h4>The function used for creating this program</h4></u> </p>
+        <p>void switchOnLed(void)</p>
+        <p>void switchOffLed(void)</p>
+       <p>void switchOnValve(void)</p>
+        <p>void switchOffValve(void)</p>
+        <p>void sntpTask(void *pvParameters)</p>
+        <p>void websocket_task(void *pvParameter)
+        <p>void websocket_cb(struct tcp_pcb *pcb, uint8_t *data, u16_t data_len, uint8_t mode)</p>
+        <p>void user_init(void)</p>
+        <p> {</p>
+        <p>xTaskCreate(sntpTask, "SNTP",1024, NULL, 1, NULL);</p>
+      
+       <p>}</p>
+        </p>
+	</div>
+
+
+      	<script type="text/javascript" src="js/smoothie_min.js"></script>
+                
+
+	<script>
+			var ws;
+			var retries;
+			var series = new TimeSeries();
+			window.onload = function() {
+				wsOpen();
+				startPolling();
+			}
+			function setMsg(cls, text) {
+				sbox = document.getElementById('status_box');
+				sbox.className = "alert alert-" + cls;
+				sbox.innerHTML = text;
+				console.log(text);
+			}
+			function startPolling() {
+			var chart = new SmoothieChart({millisPerPixel:11,grid:{fillStyle:'#ffffff',strokeStyle:'#ffffff',borderVisible:false},
+					labels:{fillStyle:'#000000'},maxValue:1024,minValue:0});
+				chart.addTimeSeries(series, {lineWidth:2,strokeStyle:'#03a9f4',fillStyle:'#f1f5fa'});
+				chart.streamTo(document.getElementById("chartCanvas"), 500);
+				setInterval(function() { wsWrite('A'); }, 500);
+			}
+			function onMessage(evt) {
+				retries = 0;
+				var dv = new DataView(evt.data);
+				var val = dv.getUint16(0);
+				if (val == 0xBEEF || val == 0xDEAD)
+					console.log("LED switched");
+				else
+					series.append(new Date().getTime(), val);
+			}
+			function wsOpen() {
+				if (ws === undefined || ws.readyState != 0) {
+					if (retries)
+						setMsg("error", "WebSocket timeout, retrying..");
+					else
+						setMsg("info", "Opening WebSocket..");
+					ws = new WebSocket("ws://" + location.host);
+					ws.binaryType = 'arraybuffer';
+					ws.onopen = function(evt) { retries = 0; setMsg("done", "WebSocket is open."); };
+					ws.onerror = function(evt) { setMsg("error", "WebSocket error!"); };
+					ws.onmessage = function(evt) { onMessage(evt); };
+					wsOpenStream();
+					retries = 0;
+				}
+			}
+
+                        
+function wsOpenStream() {
+ var uri = "/stream"
+ var ws = new WebSocket("ws://" + location.host + uri);
+ ws.onmessage = function(evt) {
+ console.log(evt.data);
+ var stats = JSON.parse(evt.data);
+ console.log(stats);
+ document.getElementById('presentTime').innerHTML = stats.presentTime;
+ document.getElementById('uptime').innerHTML = stats.uptime ;
+ document.getElementById('heap').innerHTML = stats.heap + ' bytes';
+ document.getElementById('led').innerHTML = (stats.led == 1) ? ' On ' : ' Off ';
+ document.getElementById('valveState').innerHTML = (stats.valveState == 1) ? ' On '  + ':at' +  stats.prTime : ' Off ' + ':at' +  stats.prTime ;
+ document.getElementById('datertc').innerHTML = stats.datertc;
+ document.getElementById('timertc').innerHTML = stats.timertc;
+ document.getElementById('temprtc').innerHTML = stats.temprtc;                         
+  };
+}
+                        
+	function wsWrite(data) {
+				if (ws.readyState == 3 || retries++ > 5)
+					wsOpen();
+				else if (ws.readyState == 1)
+					ws.send(data);
+		        	}
+			       function gpio() {
+				if (document.getElementById('led-switch').checked)
+					wsWrite('E');
+				else
+					wsWrite('D');
+			}
+
+   </script>
+
+ </body></html> </div> </div>
+
+<div style="clear:both"></div>
