@@ -25,9 +25,6 @@ float tempFloat;
 
 /* END This below code is for DS3231  */
 
-
-
-
 /* Add extras/sntp component to makefile for this include to work */
 #include <sntp.h>
 #include <sys/time.h>
@@ -56,9 +53,6 @@ uint32_t base_addr, num_sectors;
 sysparam_status_t status;
 uint32_t base_addr, num_sectors;
 TimerHandle_t valveControlTimer;/*Variable for xTimerCreate*/
-
-
-
 
 void switchOnValve()
 {
@@ -90,8 +84,6 @@ void switchOnLed(void)
     gpio_write(LED_PIN,false);
 }
 
-
-
 void sntpTask(void *pvParameters)
 {
   const struct timezone tz = {5.5*60, 0};
@@ -106,9 +98,6 @@ void sntpTask(void *pvParameters)
   printf("DONE!\n");
   vTaskDelete(NULL);
 }
-
-
-
 
 void websocket_task(void *pvParameters)
 {
@@ -187,9 +176,6 @@ void print_forward_order();
 int getListLength();
 /* int getPeriod(); */
 void print_list();
-   
-
-
 
 struct linked_list{
     int setTime;
@@ -200,8 +186,6 @@ struct linked_list{
 
 typedef struct linked_list node;
 node *head = NULL, *tail = NULL;
-
-
 
 // Insert a node at tail of a circular doubly linked list
 void insert_at_tail(int setTime,int number )
@@ -267,8 +251,6 @@ int getListLength()
         return count;
    }
 
-
-
 void print_forward_order()
 {
     if(head==NULL)  return;
@@ -328,16 +310,9 @@ void rtcTask(void *pvParameters)
         ds3231_getTime(&dev, &timeRTC);
         ds3231_getTempFloat(&dev, &tempFloat);
         printf("\nRTC DATA \nDATE:%d/%d/%d,\nTIME:%d:%d:%d,\nTEMPERATURE:%.2f DegC\r\n",timeRTC.tm_mday+1, timeRTC.tm_mon+1, timeRTC.tm_year+1900, timeRTC.tm_hour, timeRTC.tm_min, timeRTC.tm_sec, tempFloat);
-
-     
-       
-
                node *current = head;
                current=current->next;
-               print_list(current->setTime,current->number);
-             
-         
-       
+               print_list(current->setTime,current->number); 
     }
 }
 
@@ -398,7 +373,6 @@ void responseTask(void *pvParameters)
 void user_init(void)
 {
     
-
     const int scl = 5, sda = 4;/* rtc code */
    
     i2c_init(0,scl,sda,I2C_FREQ_400K);/* rtc code */
@@ -424,14 +398,10 @@ void user_init(void)
 
   
 
- 
-
-
-
-    int a= 100*60*1.0, b=100*60*90;  /*1min on time, 90min stop time*/
-    int c= 100*60*1.0, d=100*60*90;  /*1min on time, 90min stop time*/
-    int e= 100*60*1.0, f=100*60*90;  /*1min on time, 90min  stop time*/  
-    int g= 100*60*1.0, h=100*60*1167;  /*1min on time, 1hours stop time*/
+    int a= 100*60*1.0, b=100*60*90;   /*1min on time, 90min stop time*/
+    int c= 100*60*1.0, d=100*60*90;   /*1min on time, 90min stop time*/
+    int e= 100*60*1.0, f=100*60*90;    /*1min on time, 90min  stop time*/  
+    int g= 100*60*1.0, h=100*60*1167;  /*1min on time, 19hours 45 min stop time*/
     
 
     insert_at_tail(a,b);
